@@ -64,7 +64,7 @@ void ZDGLRender::initialize()
         "varying mediump vec4 color;\n"
         "void main(void)\n"
         "{\n"
-        "    gl_FragColor = color;\n"
+        "    gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n"
         "}\n";
 
     program1.addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vsrc1);
@@ -81,8 +81,6 @@ void ZDGLRender::initialize()
     m_fAngle = 0;
     m_fScale = 1;
 
-    glViewport(0, 0, 640, 480);
-    glMatrixMode(GL_PROJECTION);
 }
 
 void ZDGLRender::render()
@@ -104,7 +102,8 @@ void ZDGLRender::render()
     modelview.rotate(m_fAngle, 1.0f, 0.0f, 0.0f);
     modelview.rotate(m_fAngle, 0.0f, 0.0f, 1.0f);
     modelview.scale(m_fScale);
-    modelview.translate(0.0f, -0.2f, 0.0f);
+    modelview.translate(0.0f, 0.0f, 0.0f);
+    //modelview.perspective(90.0f, 1.0f,0.0f,100.0f);
 
     program1.bind();
     program1.setUniformValue(matrixUniform1, modelview);
