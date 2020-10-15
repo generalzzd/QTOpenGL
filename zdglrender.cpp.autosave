@@ -81,8 +81,6 @@ void ZDGLRender::initialize()
     m_fAngle = 0;
     m_fScale = 1;
 
-    glViewport(0, 0, 640, 480);
-    glMatrixMode(GL_PROJECTION);
 }
 
 void ZDGLRender::render()
