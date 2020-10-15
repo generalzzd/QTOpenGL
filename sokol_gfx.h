@@ -1,4 +1,5 @@
 #ifndef SOKOL_GFX_INCLUDED
+
 /*
     sokol_gfx.h -- simple 3D API wrapper
 

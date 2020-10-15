@@ -20,16 +20,7 @@ public:
     void render();
     void initialize();
 
-private:
 
-    void paintQtLogo();
-
-    QVector<QVector3D> vertices;
-    QVector<QVector3D> normals;
-    QOpenGLShaderProgram shader1;
-    int vertexAttr1;
-    int normalAttr1;
-    int matrixUniform1;
 };
 
 #endif // ZDGLRENDER_H
