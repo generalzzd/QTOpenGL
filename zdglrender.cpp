@@ -1,5 +1,5 @@
 #include "zdglrender.h"
-
+#include "sokol_gfx.h"
 #include <iostream>
 using namespace std;
 
@@ -15,13 +15,13 @@ ZDGLRender::~ZDGLRender()
 
 void ZDGLRender::paintQtLogo()
 {
-    program1.enableAttributeArray(normalAttr1);
-    program1.enableAttributeArray(vertexAttr1);
-    program1.setAttributeArray(vertexAttr1, vertices.constData());
-    program1.setAttributeArray(normalAttr1, normals.constData());
+    shader1.enableAttributeArray(normalAttr1);
+    shader1.enableAttributeArray(vertexAttr1);
+    shader1.setAttributeArray(vertexAttr1, vertices.constData());
+    shader1.setAttributeArray(normalAttr1, normals.constData());
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    program1.disableAttributeArray(normalAttr1);
-    program1.disableAttributeArray(vertexAttr1);
+    shader1.disableAttributeArray(normalAttr1);
+    shader1.disableAttributeArray(vertexAttr1);
 }
 
 
@@ -38,40 +38,34 @@ void ZDGLRender::initialize()
     cout<<"GLSL Version: "<<glslversion<<endl;
 
     const char *vsrc1 =
-        "attribute highp vec4 vertex;\n"
-        "attribute mediump vec3 normal;\n"
-        "uniform mediump mat4 matrix;\n"
-        "varying mediump vec4 color;\n"
-        "void main(void)\n"
-        "{\n"
-        "    vec3 toLight = normalize(vec3(0.0, 0.3, 1.0));\n"
-        "    float angle = max(dot(normal, toLight), 0.0);\n"
-        "    vec3 col = vec3(0.40, 1.0, 0.0);\n"
-        "    color = vec4(col * 0.2 + col * 0.8 * angle, 1.0);\n"
-        "    color = clamp(color, 0.0, 1.0);\n"
-        "    gl_Position = matrix * vertex;\n"
-        "}\n";
+            "in vec4 vPosition;           \n"\
+            "in vec4 vColor;              \n"\
+            "out vec4 color;              \n"\
+            "void main()                  \n"\
+            "{                            \n"\
+            "    color = vColor;          \n"\
+            "    gl_Position = vPosition; \n"\
+            "}                            \n";
 
     const char *fsrc1 =
-        "varying mediump vec4 color;\n"
-        "void main(void)\n"
-        "{\n"
-        "    gl_FragColor = color;\n"
-        "}\n";
+                "#version 300                              \n"
+                "precision mediump float;                     \n"
+                "out vec4 fragColor;                          \n"
+                "void main()                                  \n"
+                "{                                            \n"
+                "   fragColor = vec4 ( 1.0, 0.0, 0.0, 1.0 );  \n"
+                "}                                            \n";
 
-    program1.addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vsrc1);
-    program1.addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fsrc1);
-    program1.link();
+    shader1.addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vsrc1);
+    shader1.addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fsrc1);
+    shader1.link();
 
-    vertexAttr1 = program1.attributeLocation("vertex");
-    normalAttr1 = program1.attributeLocation("normal");
-    matrixUniform1 = program1.uniformLocation("matrix");
+//    vertexAttr1 = shader1.attributeLocation("vertex");
+//    normalAttr1 = shader1.attributeLocation("normal");
+//    matrixUniform1 = shader1.uniformLocation("matrix");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-    m_fAngle = 0;
-    m_fScale = 1;
 
 }
 
@@ -90,21 +84,17 @@ void ZDGLRender::render()
     glEnable(GL_DEPTH_TEST);
 
     QMatrix4x4 modelview;
-    modelview.rotate(m_fAngle, 0.0f, 1.0f, 0.0f);
-    modelview.rotate(m_fAngle, 1.0f, 0.0f, 0.0f);
-    modelview.rotate(m_fAngle, 0.0f, 0.0f, 1.0f);
-    modelview.scale(m_fScale);
     modelview.translate(0.0f, -0.2f, 0.0f);
 
-    program1.bind();
-    program1.setUniformValue(matrixUniform1, modelview);
+    shader1.bind();
+    shader1.setUniformValue(matrixUniform1, modelview);
     //paintQtLogo();
-    program1.release();
+    shader1.release();
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    m_fAngle += 1.0f;
+
 }
 
 

@@ -22,14 +22,11 @@ public:
 
 private:
 
-    qreal   m_fAngle;
-    qreal   m_fScale;
-
     void paintQtLogo();
 
     QVector<QVector3D> vertices;
     QVector<QVector3D> normals;
-    QOpenGLShaderProgram program1;
+    QOpenGLShaderProgram shader1;
     int vertexAttr1;
     int normalAttr1;
     int matrixUniform1;
