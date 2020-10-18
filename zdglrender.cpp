@@ -1,7 +1,17 @@
 #include "zdglrender.h"
 
 #include <iostream>
+
+#include <bx/bx.h>
+#include <bx/spscqueue.h>
+#include <bx/thread.h>
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#include "logo.h"
+
 using namespace std;
+
+bx::Thread apiThread;
 
 ZDGLRender::ZDGLRender()
 {
@@ -10,110 +20,110 @@ ZDGLRender::ZDGLRender()
 
 ZDGLRender::~ZDGLRender()
 {
-
+    while (bgfx::RenderFrame::NoContext != bgfx::renderFrame()) {}
+    apiThread.shutdown();
+    apiThread.getExitCode();
 }
 
-void ZDGLRender::paintQtLogo()
+struct ApiThreadArgs
 {
-    program1.enableAttributeArray(normalAttr1);
-    program1.enableAttributeArray(vertexAttr1);
-    program1.setAttributeArray(vertexAttr1, vertices.constData());
-    program1.setAttributeArray(normalAttr1, normals.constData());
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    program1.disableAttributeArray(normalAttr1);
-    program1.disableAttributeArray(vertexAttr1);
-}
+    bgfx::PlatformData platformData;
+    uint32_t width;
+    uint32_t height;
+};
+enum class EventType
+{
+    Exit,
+    Key,
+    Resize
+};
 
+struct ExitEvent
+{
+    EventType type = EventType::Exit;
+};
+
+struct KeyEvent
+{
+    EventType type = EventType::Key;
+    int key;
+    int action;
+};
+
+struct ResizeEvent
+{
+    EventType type = EventType::Resize;
+    uint32_t width;
+    uint32_t height;
+};
+static int32_t runApiThread(bx::Thread *self, void *userData)
+{
+    auto args = (ApiThreadArgs *)userData;
+    // Initialize bgfx using the native window handle and window resolution.
+    bgfx::Init init;
+    init.type = bgfx::RendererType::Enum::OpenGL;
+    init.platformData = args->platformData;
+    init.resolution.width = args->width;
+    init.resolution.height = args->height;
+    init.resolution.reset = BGFX_RESET_VSYNC;
+    if (!bgfx::init(init))
+        return 1;
+    // Set view 0 to the same dimensions as the window and to clear the color buffer.
+    const bgfx::ViewId kClearView = 0;
+    bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
+    bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
+    uint32_t width = args->width;
+    uint32_t height = args->height;
+    bool showStats = false;
+    bool exit = false;
+    while (!exit) {
+        // Handle events from the main thread.
+
+        // This dummy draw call is here to make sure that view 0 is cleared if no other draw calls are submitted to view 0.
+        bgfx::touch(kClearView);
+        // Use debug font to print information about this example.
+        bgfx::dbgTextClear();
+        bgfx::dbgTextImage(bx::max<uint16_t>(uint16_t(width / 2 / 8), 20) - 20, bx::max<uint16_t>(uint16_t(height / 2 / 16), 6) - 6, 40, 12, s_logo, 160);
+        bgfx::dbgTextPrintf(0, 0, 0x0f, "Press F1 to toggle stats.");
+        bgfx::dbgTextPrintf(0, 1, 0x0f, "Color can be changed with ANSI \x1b[9;me\x1b[10;ms\x1b[11;mc\x1b[12;ma\x1b[13;mp\x1b[14;me\x1b[0m code too.");
+        bgfx::dbgTextPrintf(80, 1, 0x0f, "\x1b[;0m    \x1b[;1m    \x1b[; 2m    \x1b[; 3m    \x1b[; 4m    \x1b[; 5m    \x1b[; 6m    \x1b[; 7m    \x1b[0m");
+        bgfx::dbgTextPrintf(80, 2, 0x0f, "\x1b[;8m    \x1b[;9m    \x1b[;10m    \x1b[;11m    \x1b[;12m    \x1b[;13m    \x1b[;14m    \x1b[;15m    \x1b[0m");
+        const bgfx::Stats* stats = bgfx::getStats();
+        bgfx::dbgTextPrintf(0, 2, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters.", stats->width, stats->height, stats->textWidth, stats->textHeight);
+        // Enable stats or debug text.
+        bgfx::setDebug(showStats ? BGFX_DEBUG_STATS : BGFX_DEBUG_TEXT);
+        // Advance to next frame. Main thread will be kicked to process submitted rendering primitives.
+        bgfx::frame();
+    }
+    bgfx::shutdown();
+    return 0;
+}
 
 void ZDGLRender::initialize()
 {
     initializeOpenGLFunctions();
 
-    vertices.push_back(QVector3D(0.0f,0.0f,1.0f));
-    vertices.push_back(QVector3D(1.0f,0.0f,1.0f));
-    vertices.push_back(QVector3D(0.0f,1.0f,1.0f));
+    bgfx::renderFrame();
 
-    vertices.push_back(QVector3D(1.0f,0.0f,1.0f));
-    vertices.push_back(QVector3D(1.0f,1.0f,1.0f));
-    vertices.push_back(QVector3D(0.0f,1.0f,1.0f));
+    ApiThreadArgs apiThreadArgs;
 
-    auto glversion = glGetString(GL_VERSION);
-    cout<<"GL: "<<glversion<<endl;
-    QOpenGLContext* glctx = QOpenGLContext::currentContext();
-    bool isgles = glctx->isOpenGLES();
-    cout<<"GLES: "<<(isgles ? "True" : "False")<<endl;
-    auto glslversion = glGetString(GL_SHADING_LANGUAGE_VERSION);
-    cout<<"GLSL Version: "<<glslversion<<endl;
+    QVariant ctx = QOpenGLContext::currentContext()->nativeHandle();
+    if(ctx.isNull())
+        exit(-1);
 
-    const char *vsrc1 =
-        "attribute highp vec4 vertex;\n"
-        "attribute mediump vec3 normal;\n"
-        "uniform mediump mat4 matrix;\n"
-        "varying mediump vec4 color;\n"
-        "void main(void)\n"
-        "{\n"
-        "    vec3 toLight = normalize(vec3(0.0, 0.3, 1.0));\n"
-        "    float angle = max(dot(normal, toLight), 0.0);\n"
-        "    vec3 col = vec3(0.40, 1.0, 0.0);\n"
-        "    color = vec4(col * 0.2 + col * 0.8 * angle, 1.0);\n"
-        "    color = clamp(color, 0.0, 1.0);\n"
-        "    gl_Position = matrix * vertex;\n"
-        "}\n";
+    apiThreadArgs.platformData.context = ctx.value();
+    apiThreadArgs.width = 640;
+    apiThreadArgs.height = 480;
 
-    const char *fsrc1 =
-        "varying mediump vec4 color;\n"
-        "void main(void)\n"
-        "{\n"
-        "    gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n"
-        "}\n";
+    apiThread.init(runApiThread, &apiThreadArgs);
 
-    program1.addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vsrc1);
-    program1.addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fsrc1);
-    program1.link();
-
-    vertexAttr1 = program1.attributeLocation("vertex");
-    normalAttr1 = program1.attributeLocation("normal");
-    matrixUniform1 = program1.uniformLocation("matrix");
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-    m_fAngle = 0;
-    m_fScale = 1;
 
 }
 
 void ZDGLRender::render()
 {
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-    glFrontFace(GL_CW);
-    glCullFace(GL_FRONT);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-
-    QMatrix4x4 modelview;
-    modelview.rotate(m_fAngle, 0.0f, 1.0f, 0.0f);
-    modelview.rotate(m_fAngle, 1.0f, 0.0f, 0.0f);
-    modelview.rotate(m_fAngle, 0.0f, 0.0f, 1.0f);
-    modelview.scale(m_fScale);
-    modelview.translate(0.0f, 0.0f, 0.0f);
-    //modelview.perspective(90.0f, 1.0f,0.0f,100.0f);
-
-    program1.bind();
-    program1.setUniformValue(matrixUniform1, modelview);
-    paintQtLogo();
-    program1.release();
-
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-
-    m_fAngle += 1.0f;
+     bgfx::renderFrame();
 }
 
 

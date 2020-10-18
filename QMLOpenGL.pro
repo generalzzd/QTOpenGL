@@ -32,5 +32,23 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    logo.h \
     zdglfbowidgets.h \
     zdglrender.h
+
+INCLUDEPATH += /Users/zidizhang/Downloads/zdbgfx/bgfx/include/ \
+               /Users/zidizhang/Downloads/zdbgfx/bimg/include/ \
+               /Users/zidizhang/Downloads/zdbgfx/bx/include/
+
+
+
+
+unix|win32: LIBS += -L$$PWD/./ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease -lbxRelease
+
+INCLUDEPATH += $$PWD/.
+DEPENDPATH += $$PWD/.
+
+LIBS += -framework CoreGraphics -framework CoreFoundation -framework Foundation \
+        -framework AppKit -framework IOKit -framework QuartzCore -framework Metal
+
+
