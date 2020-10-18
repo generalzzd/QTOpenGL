@@ -111,7 +111,7 @@ void ZDGLRender::initialize()
     if(ctx.isNull())
         exit(-1);
 
-    apiThreadArgs.platformData.context = ctx.value();
+    //apiThreadArgs.platformData.context = ctx.value();
     apiThreadArgs.width = 640;
     apiThreadArgs.height = 480;
 

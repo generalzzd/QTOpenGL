@@ -1,18 +1,14 @@
 import QtQuick 2.0
-import QtQuick.Window 2.12
+import QtQuick.Controls 2.0
 
-import SceneGraphRendering 1.0
-
-Item {
+ApplicationWindow {
     visible: true
     width: 640
     height: 480
 
-    Renderer {
-        id: renderer
-        anchors.fill: parent
-
-
+    Text {
+        id: mText
+        text: qsTr("ZZD text")
     }
 
 
