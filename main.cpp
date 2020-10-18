@@ -1,7 +1,11 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 
-#include "zdglfbowidgets.h"
+#include<iostream>
+using namespace std;
+
+#include"zdwindow.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +18,14 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+    ZDWindow mWindow;
+
+    QQmlContext *ctx = engine.rootContext();
+    ctx->setContextProperty("ZDWindow", &mWindow);
+
+
+
     engine.load(url);
 
     return app.exec();

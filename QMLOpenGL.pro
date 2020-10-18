@@ -15,8 +15,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        zdglfbowidgets.cpp \
-        zdglrender.cpp
+        zdwindow.cpp
 
 RESOURCES += qml.qrc
 
@@ -33,8 +32,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     logo.h \
-    zdglfbowidgets.h \
-    zdglrender.h
+    zdwindow.h
 
 INCLUDEPATH += /Users/zidizhang/Downloads/zdbgfx/bgfx/include/ \
                /Users/zidizhang/Downloads/zdbgfx/bimg/include/ \
@@ -48,7 +46,6 @@ unix|win32: LIBS += -L$$PWD/./ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
-LIBS += -framework CoreGraphics -framework CoreFoundation -framework Foundation \
-        -framework AppKit -framework IOKit -framework QuartzCore -framework Metal
+
 
 
