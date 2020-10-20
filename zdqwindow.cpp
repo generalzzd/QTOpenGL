@@ -10,6 +10,34 @@ ZDQWindow::ZDQWindow(QWindow *parent)
     : QWindow(parent)
 {
     setSurfaceType(QWindow::OpenGLSurface);
+
+    int width = 640, height = 480;
+    const bgfx::ViewId kClearView = 0;
+
+    bgfx::renderFrame();
+    ApiThreadArgs args;
+
+    args.platformData.nwh = (void*)this->winId();
+
+
+    args.width = (uint32_t)width;
+    args.height = (uint32_t)height;
+
+    // Initialize bgfx using the native window handle and window resolution.
+    bgfx::Init init;
+    init.type = bgfx::RendererType::Count;
+    init.platformData = args.platformData;
+    init.resolution.width = args.width;
+    init.resolution.height = args.height;
+    init.resolution.reset = BGFX_RESET_VSYNC;
+    if (!bgfx::init(init))
+        return ;
+    // Set view 0 to the same dimensions as the window and to clear the color buffer.
+    bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
+    bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
+
+
+
 }
 
 ZDQWindow::~ZDQWindow()
@@ -22,34 +50,8 @@ ZDQWindow::~ZDQWindow()
 
 void ZDQWindow::render()
 {
-    int width = 640, height = 480;
     const bgfx::ViewId kClearView = 0;
-    static bool isInit = false;
-    if(!isInit)
-    {
-        bgfx::renderFrame();
-        ApiThreadArgs args;
-
-        args.platformData.nwh = (void*)this->winId();
-
-
-        args.width = (uint32_t)width;
-        args.height = (uint32_t)height;
-
-        // Initialize bgfx using the native window handle and window resolution.
-        bgfx::Init init;
-        init.platformData = args.platformData;
-        init.resolution.width = args.width;
-        init.resolution.height = args.height;
-        init.resolution.reset = BGFX_RESET_VSYNC;
-        if (!bgfx::init(init))
-            return ;
-        // Set view 0 to the same dimensions as the window and to clear the color buffer.
-        bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
-        bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
-
-        isInit = true;
-    }
+    int width = 640, height = 480;
 
     bgfx::touch(kClearView);
     // Use debug font to print information about this example.
