@@ -30,7 +30,7 @@ void ZDQWindow::render()
         bgfx::renderFrame();
         ApiThreadArgs args;
 
-        //args.platformData.nwh = (void*)this->winId();
+        args.platformData.nwh = (void*)this->winId();
 
 
         args.width = (uint32_t)width;
