@@ -11,7 +11,7 @@ class LogoInFboRenderer : public QQuickFramebufferObject::Renderer
 public:
     LogoInFboRenderer()
     {
-        logo.initialize();
+        logo.initialize(fbo);
     }
 
     void render() override {
@@ -23,10 +23,12 @@ public:
         QOpenGLFramebufferObjectFormat format;
         format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
         format.setSamples(4);
-        return new QOpenGLFramebufferObject(size, format);
+        fbo = new QOpenGLFramebufferObject(size, format);
+        return fbo;
     }
 
     ZDGLRender logo;
+    QOpenGLFramebufferObject* fbo;
 };
 
 QQuickFramebufferObject::Renderer *ZDGLFBOWidgets::createRenderer() const

@@ -7,6 +7,7 @@
 #include <QtGui/qmatrix4x4.h>
 #include <QtGui/qopenglshaderprogram.h>
 #include <QtGui/qopenglfunctions.h>
+#include <QtGui/QOpenGLFramebufferObject>
 
 #include <QTime>
 #include <QVector>
@@ -18,7 +19,7 @@ public:
     ~ZDGLRender();
 
     void render();
-    void initialize();
+    void initialize(QOpenGLFramebufferObject *fbo);
 
 
 };
