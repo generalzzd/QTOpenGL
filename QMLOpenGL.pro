@@ -15,6 +15,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
+        zdqwindow.cpp \
         zdwindow.cpp
 
 RESOURCES += qml.qrc
@@ -32,6 +33,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     logo.h \
+    zdqwindow.h \
     zdwindow.h
 
 INCLUDEPATH += /Users/zidizhang/Downloads/zdbgfx/bgfx/include/ \
@@ -41,10 +43,31 @@ INCLUDEPATH += /Users/zidizhang/Downloads/zdbgfx/bgfx/include/ \
 
 
 
-unix|win32: LIBS += -L$$PWD/./ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease -lbxRelease
 
-INCLUDEPATH += $$PWD/.
-DEPENDPATH += $$PWD/.
+if(contains(DEFINES, PLATFORM_MACOS64) ){
+
+LIBS += -L$$PWD/osx/ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease -lbxRelease
+LIBS += -framework CoreGraphics -framework CoreFoundation -framework Foundation \
+            -framework AppKit -framework IOKit -framework QuartzCore -framework Metal
+}
+if(contains(DEFINES, PLATFORM_IOS64)){
+
+LIBS += -framework GLKit -framework Metal -framework UIKit #-framework AppKit
+LIBS += -L$$PWD/ios-arm64/ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease -lbxRelease
+
+}
+
+if(contains(DEFINES, PLATFORM_IOSSIMULATOR)){
+
+LIBS += -framework GLKit -framework Metal -framework UIKit
+LIBS += -L$$PWD/ios-simulator64/ -lbgfxDebug -lbimg_decodeDebug  -lbimgDebug -lbxDebug
+
+}
+
+
+
+
+
 
 
 
