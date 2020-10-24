@@ -15,8 +15,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        zdqwindow.cpp \
-        zdwindow.cpp
+        zdqwindow.mm \
+        zdwindow.mm
 
 RESOURCES += qml.qrc
 
@@ -59,7 +59,7 @@ LIBS += -L$$PWD/ios-arm64/ -lbgfxRelease -lbimg_decodeRelease  -lbimgRelease -lb
 
 if(contains(DEFINES, PLATFORM_IOSSIMULATOR)){
 
-LIBS += -framework GLKit -framework Metal -framework UIKit
+LIBS += -framework GLKit -framework Metal -framework UIKit -framework QuartzCore
 LIBS += -L$$PWD/ios-simulator64/ -lbgfxDebug -lbimg_decodeDebug  -lbimgDebug -lbxDebug
 
 }
