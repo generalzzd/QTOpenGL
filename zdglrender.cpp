@@ -104,7 +104,7 @@ void ZDGLRender::render()
     // Advance to next frame. Main thread will be kicked to process submitted rendering primitives.
     bgfx::frame();
 
-    bgfx::renderFrame();
+    //bgfx::renderFrame();
 }
 
 
